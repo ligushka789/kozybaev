@@ -4,7 +4,7 @@ import pandas as pd
 def app():
     st.title("🏠 Home Page")
     st.write("""
- паша напиши сюда сносный небольшой текст что это просто мвпшка(тип чекер на идею норм не норм мб корректнуть её надо как нить)
+    This is our minimum viable product, a preview what's about to come in our final project. The sole purpose of this page is to check the feasibility of the idea and visually explore possible final look of our product:
     """)
 
     # Загружаем датасеты
@@ -28,7 +28,7 @@ def app():
 
     # --- БЛОК 2 ---
     with col2:
-        st.markdown("### 🔸 Блок 2")
+        st.markdown("### 🔸 Block 2: Healthy Options")
         st.write("Это второй блок. Например, сюда можно вставить график, визуализацию или сравнение цен.")
         st.markdown("---")
 
