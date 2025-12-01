@@ -92,6 +92,9 @@ page = query_params.get("page", "home")
 if page == "home":
     import pages.home as home
     home.app()
+elif page == "account":
+    import pages.account as account
+    account.app()
 elif page == "stats":
     import pages.stats as stats
     stats.app()

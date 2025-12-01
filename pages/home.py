@@ -115,6 +115,42 @@ def app():
 .button-56:hover { outline: 0; }
 @media (min-width: 768px) { .button-56 { padding: 0 40px; } }
 
+/* Dropdown menu styles */
+.dropdown-menu {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 100%;
+    background-color: white;
+    border: 2px solid #111;
+    border-radius: 8px;
+    margin-top: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    z-index: 1000;
+    overflow: hidden;
+}
+
+.dropdown-item {
+    padding: 12px 20px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    border-bottom: 1px solid #f0f0f0;
+    font-size: 14px;
+    color: #111;
+}
+
+.dropdown-item:last-child {
+    border-bottom: none;
+}
+
+.dropdown-item:hover {
+    background-color: #fee6e3;
+}
+
+.dropdown-item:active {
+    background-color: #ffdeda;
+}
+
 </style>
     </head>
     <body>
@@ -128,9 +164,30 @@ def app():
                     <!-- Left Column - Action Buttons -->
                     <div class="col-span-2">
                         <div class="space-y-40 mt-120">
-                            <button @click="saveMeal" class="button-56 w-full">💾 Save</button>
-                            <button @click="generateMeal" class="button-56 w-full">✨ Generate</button>
-                            <button @click="showCategories" class="button-56 w-full">📂 Categories</button>
+                            <button class="button-56 w-full" @click="saveAction">💾 Save</button>
+                            <button class="button-56 w-full" @click="generateAction">✨ Generate</button>
+                            
+                            <!-- Categories button with dropdown -->
+                            <div style="position: relative;">
+                                <button class="button-56 w-full" @click="toggleCategories">
+                                    📂 Categories
+                                </button>
+                                
+                                <!-- Dropdown menu -->
+                                <transition name="fade">
+                                    <div v-if="showCategoriesMenu" class="dropdown-menu">
+                                        <div class="dropdown-item" @click="selectCategory('Категория 1')">
+                                            Категория 1
+                                        </div>
+                                        <div class="dropdown-item" @click="selectCategory('Категория 2')">
+                                            Категория 2
+                                        </div>
+                                        <div class="dropdown-item" @click="selectCategory('Категория 3')">
+                                            Категория 3
+                                        </div>
+                                    </div>
+                                </transition>
+                            </div>
                         </div>
                     </div>
                     
@@ -226,34 +283,39 @@ def app():
                                 <div class="flex justify-end items-center gap-6">
 
                                     <!-- DROPDOWN -->
-                                    <div class="relative group">
+                                    <div class="relative" 
+                                         @mouseenter="showMoreMenu = true" 
+                                         @mouseleave="showMoreMenu = false">
                                         <button class="text-white text-xl font-semibold text-shadow hover:opacity-80 transition">
                                             More ▾
                                         </button>
 
-                                        <div class="absolute right-0 mt-2 hidden group-hover:block
-                                                    bg-white rounded-xl shadow-lg overflow-hidden z-50 min-w-[180px]">
+                                        <transition name="fade">
+                                            <div v-if="showMoreMenu" 
+                                                 class="absolute right-0 mt-2 bg-white rounded-xl shadow-lg overflow-hidden z-50 min-w-[180px]">
 
-                                            <button @click="navigate('stats')" class="block px-4 py-2 text-left hover:bg-gray-100 w-full">
-                                                Statistics
-                                            </button>
+                                                <button @click="navigate('stats')" class="block px-4 py-2 text-left hover:bg-gray-100 w-full">
+                                                    Statistics
+                                                </button>
 
-                                            <button @click="navigate('datasets')" class="block px-4 py-2 text-left hover:bg-gray-100 w-full">
-                                                Datasets
-                                            </button>
+                                                <button @click="navigate('datasets')" class="block px-4 py-2 text-left hover:bg-gray-100 w-full">
+                                                    Datasets
+                                                </button>
 
-                                            <button @click="navigate('faq')" class="block px-4 py-2 text-left hover:bg-gray-100 w-full text-red-500 font-semibold">
-                                                FAQ
-                                            </button>
+                                                <button @click="navigate('faq')" class="block px-4 py-2 text-left hover:bg-gray-100 w-full text-red-500 font-semibold">
+                                                    FAQ
+                                                </button>
 
-                                            <button @click="navigate('about')" class="block px-4 py-2 text-left hover:bg-gray-100 w-full">
-                                                About us
-                                            </button>
-                                        </div>
+                                                <button @click="navigate('about')" class="block px-4 py-2 text-left hover:bg-gray-100 w-full">
+                                                    About us
+                                                </button>
+                                            </div>
+                                        </transition>
                                     </div>
 
                                     <!-- ACCOUNT -->
-                                    <button class="text-white text-xl font-semibold text-shadow hover:opacity-80 transition">
+                                    <button @click="navigate('account')" 
+                                            class="text-white text-xl font-semibold text-shadow hover:opacity-80 transition">
                                         My Account →
                                     </button>
 
@@ -265,6 +327,11 @@ def app():
                     </div>
                     <hr class="border-white/20 mb-8">
                 `,
+                data() {
+                    return {
+                        showMoreMenu: false
+                    }
+                },
                 methods: {
                     navigate(page) {
                         window.location.href = `?page=${page}`;
@@ -282,6 +349,8 @@ def app():
                 data() {
                     return {
                         notification: '',
+                        showCategoriesMenu: false,
+                        selectedCategory: null,
                         mealPlan: MEAL_PLAN_DATA,
                         foodImages: [
                             {
@@ -302,20 +371,23 @@ def app():
                         ]
                     }
                 },
-                methods: {
-                    generateMeal() {
-                        // Reload page to trigger new meal generation
-                        window.location.href = '?page=home&regenerate=true';
+                methods: {  
+                    saveAction() {
+                        this.showNotification('💾 Saved successfully!');
                     },
                     
-                    saveMeal() {
-                        this.showNotification('✅ Meal plan saved!');
-                        // Could send to Streamlit session state if needed
-                        console.log('Saving meal:', this.mealPlan);
+                    generateAction() {
+                        this.showNotification('✨ Generating new meal plan...');
                     },
                     
-                    showCategories() {
-                        this.showNotification('🔍 Choosing categories...');
+                    toggleCategories() {
+                        this.showCategoriesMenu = !this.showCategoriesMenu;
+                    },
+                    
+                    selectCategory(category) {
+                        this.selectedCategory = category;
+                        this.showCategoriesMenu = false;
+                        this.showNotification(`📂 Selected: ${category}`);
                     },
                     
                     showNotification(message) {
@@ -324,6 +396,15 @@ def app():
                             this.notification = '';
                         }, 3000);
                     }
+                },
+                mounted() {
+                    // Close dropdown when clicking outside
+                    document.addEventListener('click', (event) => {
+                        const dropdown = event.target.closest('.button-56');
+                        if (!dropdown) {
+                            this.showCategoriesMenu = false;
+                        }
+                    });
                 }
             }).mount('#app');
         </script>
@@ -426,4 +507,3 @@ def generate_meal_plan():
             "• <i>Salt and pepper to taste</i>"
         ]
     }
-
