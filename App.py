@@ -105,10 +105,13 @@ st.markdown("""
 
 # Получаем параметр страницы из URL
 query_params = st.query_params
-page = query_params.get("page", "home")
+page = query_params.get("page", "test")  # Изменено с "home" на "test"
 
 # Переход между страницами
-if page == "home":
+if page == "test":
+    import pages.test as test
+    test.app()
+elif page == "home":
     import pages.home as home
     home.app()
 elif page == "stats":
@@ -124,6 +127,6 @@ elif page == "about":
     import pages.abtus as abtus
     abtus.app()
 else:
-    # По умолчанию показываем главную
-    import pages.home as home
-    home.app()
+    # По умолчанию показываем тест
+    import pages.test as test
+    test.app()
