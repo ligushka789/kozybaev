@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import random
 from pages.header import render_header
+from generate.generator import generate_meal_plan as ml_generate_meal_plan
 
 
 def app():
@@ -286,86 +287,25 @@ def app():
 
 
 def generate_meal_plan():
-    """Generates random daily meal plan"""
+    """
+    Generates meal plan using ML model (ml/model.pkl)
+    and generator logic from generate/generator.py
+    """
 
-    proteins = [
-        "1 chicken breast",
-        "1 salmon fillet",
-        "200g beef",
-        "2 eggs",
-        "150g tofu",
-        "1 turkey fillet"
-    ]
+    df = ml_generate_meal_plan()
 
-    vegetables = [
-        "2 cups greens",
-        "1 cup broccoli florets",
-        "1 zucchini",
-        "1 bell pepper",
-        "150g spinach"
-    ]
+    # Split to 2 columns
+    half = len(df) // 2
+    left_df = df.iloc[:half]
+    right_df = df.iloc[half:]
 
-    small_veggies = [
-        "½ cup cherry tomatoes",
-        "¼ cup radish",
-        "½ cucumber",
-        "1 carrot"
-    ]
+    def fmt(row):
+        return f"{row['product_name']} — ${round(row['price'], 2)}"
 
-    carbs = [
-        "½ cup rice",
-        "100g buckwheat",
-        "2 bread slices",
-        "150g pasta",
-        "1 sweet potato"
-    ]
-
-    fats = [
-        "⅓ cup sliced cucumber",
-        "⅓ sliced avocado",
-        "30g nuts",
-        "2 tbsp hummus"
-    ]
-
-    oils = [
-        "1 tbsp olive oil",
-        "1 tsp coconut oil",
-        "1 tbsp sesame oil"
-    ]
-
-    extras = [
-        "1 tbsp balsamic vinegar",
-        "1 garlic clove",
-        "Quarter lemon",
-        "2 tbsp soy sauce",
-        "1 tsp honey"
-    ]
-
-    # Generate left column
-    left_column = [
-        random.choice(proteins),
-        random.choice(vegetables),
-        random.choice(small_veggies),
-        random.choice(fats),
-        random.choice(fats),
-        random.choice(oils),
-        random.choice(extras),
-        "<i>Salt and pepper to taste</i>"
-    ]
-
-    # Generate right column
-    right_column = [
-        random.choice(proteins),
-        random.choice(carbs),
-        random.choice(vegetables),
-        random.choice(oils),
-        random.choice(extras),
-        random.choice(extras),
-        "",
-        "<i>Salt and pepper to taste</i>"
-    ]
+    left_column = [fmt(r) for _, r in left_df.iterrows()]
+    right_column = [fmt(r) for _, r in right_df.iterrows()]
 
     return {
-        'left_column': left_column,
-        'right_column': right_column
+        "left_column": left_column,
+        "right_column": right_column
     }
