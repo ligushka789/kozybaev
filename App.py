@@ -8,7 +8,7 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# ПРИНУДИТЕЛЬНО СВЕТЛАЯ ТЕМА + СКРЫВАЕМ sidebar + УБИРАЕМ ВСТРОЕННЫЙ ХЕДЕР
+# ПРИНУДИТЕЛЬНО СВЕТЛАЯ ТЕМА + СКРЫВАЕМ sidebar + УБИРАЕМ ВСТРОЕННЫЙ ХЕДЕР + УБИРАЕМ ВСЕ ОТСТУПЫ
 st.markdown("""
 <style>
     /* ПРИНУДИТЕЛЬНАЯ СВЕТЛАЯ ТЕМА */
@@ -69,13 +69,32 @@ st.markdown("""
         overscroll-behavior: contain !important;
         position: relative !important;
         margin-left: 0 !important;
+        padding: 0 !important;
     }
     
-    /* Убираем верхний padding */
+    /* УБИРАЕМ ВСЕ ОТСТУПЫ И РАМКИ */
     .main .block-container {
         padding-top: 0rem !important;
-        padding-bottom: 2rem;
+        padding-bottom: 0rem !important;
+        padding-left: 0rem !important;
+        padding-right: 0rem !important;
+        margin: 0 !important;
         max-width: 100% !important;
+    }
+    
+    /* Убираем padding у AppView */
+    [data-testid="stAppViewContainer"] > .main {
+        padding: 0 !important;
+    }
+    
+    /* Убираем все отступы у column containers */
+    [data-testid="column"] {
+        padding: 0 !important;
+    }
+    
+    /* Убираем gap между columns */
+    [data-testid="column"] > div {
+        padding: 0 !important;
     }
     
     /* Отключаем изменение размера таблиц */
@@ -100,6 +119,26 @@ st.markdown("""
     h1, h2, h3, p, span, div {
         text-shadow: 0px 0px 3px rgba(0,0,0,0.3);
     }
+    
+    /* УБИРАЕМ PADDING 96px 80px */
+    .main .block-container {
+        padding: 0 !important;
+    }
+
+    section.main > div {
+        padding: 0 !important;
+    }
+
+    /* Если не сработает, добавьте это */
+    div.block-container {
+        padding: 0 !important;
+    }
+
+    /* Самый агрессивный вариант */
+    [class*="block-container"] {
+        padding: 0 !important;
+    }
+            
 </style>
 """, unsafe_allow_html=True)
 
@@ -114,9 +153,6 @@ if page == "test":
 elif page == "home":
     import pages.home as home
     home.app()
-elif page == "stats":
-    import pages.stats as stats
-    stats.app()
 elif page == "datasets":
     import pages.datasets as datasets
     datasets.app()
@@ -126,6 +162,9 @@ elif page == "faq":
 elif page == "about":
     import pages.abtus as abtus
     abtus.app()
+elif page == "account":
+    import pages.account as account
+    account.app()
 else:
     # По умолчанию показываем тест
     import pages.test as test
