@@ -233,21 +233,107 @@ def app():
     # Create three columns - as in screenshot
     left_col, center_col, right_col = st.columns([1, 3, 1])
 
-    # Left column - buttons
+# Left column - buttons
     with left_col:
         st.markdown("<div style='margin-top: 80px; position: relative;'>", unsafe_allow_html=True)
 
-        if st.button("💾 Save", key="save_btn", use_container_width=True):
-            st.success("✅ Meal plan saved!")
-        st.text(" ")
-        st.text(" ")
-        st.text(" ")
-        st.text(" ")
-        st.text(" ")
-        st.text(" ")
-        if st.button("✨ Generate", key="create_btn", use_container_width=True):
-            st.session_state.regenerate = True
-            st.rerun()
+        # Save button with PDF download functionality
+        if st.session_state.get('current_meal') and st.session_state.get('plan_type'):
+            from reportlab.lib.pagesizes import letter
+            from reportlab.lib import colors
+            from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+            from reportlab.platypus import SimpleDocTemplate, Table, TableStyle, Paragraph, Spacer
+            from reportlab.lib.units import inch
+            from io import BytesIO
+            import re
+            
+            meal = st.session_state.current_meal
+            
+            # Create PDF in memory
+            buffer = BytesIO()
+            doc = SimpleDocTemplate(buffer, pagesize=letter)
+            elements = []
+            
+            # Styles
+            styles = getSampleStyleSheet()
+            title_style = ParagraphStyle(
+                'CustomTitle',
+                parent=styles['Heading1'],
+                fontSize=24,
+                textColor=colors.HexColor('#722F37'),
+                spaceAfter=30,
+                alignment=1  # Center
+            )
+            
+            # Title
+            plan_name = "Budget Meal Plan" if st.session_state.plan_type == "budget" else "Healthy Meal Plan"
+            title = Paragraph(f"<b>{plan_name}</b>", title_style)
+            elements.append(title)
+            elements.append(Spacer(1, 0.2*inch))
+            
+            # Prepare table data
+            all_items = meal['left_column'] + meal['right_column']
+            table_data = [['Product', 'Price']]
+            
+            for item in all_items:
+                # Remove HTML tags
+                clean_item = re.sub('<.*?>', '', item)
+                parts = clean_item.split(' — ')
+                if len(parts) == 2:
+                    product = parts[0].strip()
+                    price = parts[1].strip()
+                    table_data.append([product, price])
+            
+            # Add total row
+            table_data.append(['TOTAL', f"${meal['total_price']}"])
+            
+            # Create table
+            table = Table(table_data, colWidths=[4.5*inch, 1.5*inch])
+            table.setStyle(TableStyle([
+                ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#722F37')),
+                ('TEXTCOLOR', (0, 0), (-1, 0), colors.whitesmoke),
+                ('ALIGN', (0, 0), (-1, -1), 'LEFT'),
+                ('ALIGN', (1, 0), (1, -1), 'RIGHT'),
+                ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+                ('FONTSIZE', (0, 0), (-1, 0), 12),
+                ('BOTTOMPADDING', (0, 0), (-1, 0), 12),
+                ('BACKGROUND', (0, 1), (-1, -2), colors.beige),
+                ('BACKGROUND', (0, -1), (-1, -1), colors.HexColor('#F4D03F')),
+                ('FONTNAME', (0, -1), (-1, -1), 'Helvetica-Bold'),
+                ('FONTSIZE', (0, -1), (-1, -1), 14),
+                ('GRID', (0, 0), (-1, -1), 1, colors.black),
+                ('ROWBACKGROUNDS', (0, 1), (-1, -2), [colors.beige, colors.white])
+            ]))
+            
+            elements.append(table)
+            
+            # Build PDF
+            doc.build(elements)
+            pdf_data = buffer.getvalue()
+            buffer.close()
+            
+            # Determine filename
+            if st.session_state.plan_type == "budget":
+                filename = "budget_meal_plan.pdf"
+            elif st.session_state.plan_type == "healthy":
+                filename = "healthy_meal_plan.pdf"
+            else:
+                filename = "meal_plan.pdf"
+            
+            # Download button
+            st.download_button(
+                label="💾 Save",
+                data=pdf_data,
+                file_name=filename,
+                mime="application/pdf",
+                key="save_btn",
+                use_container_width=True
+            )
+        else:
+            # If no meal plan generated yet
+            if st.button("💾 Save", key="save_btn", use_container_width=True):
+                st.warning("⚠️ Please generate a meal plan first!")
+        
         st.text(" ")
         st.text(" ")
         st.text(" ")
@@ -255,9 +341,19 @@ def app():
         st.text(" ")
         st.text(" ")
         
-        # Categories button with actual Streamlit buttons
+        if st.button("✨ Generate", key="create_btn", use_container_width=True):
+            st.session_state.regenerate = True
+            st.rerun()
+        
+        st.text(" ")
+        st.text(" ")
+        st.text(" ")
+        st.text(" ")
+        st.text(" ")
+        st.text(" ")
+        
+        # Categories button
         if st.button("📂 Categories", key="categories_main_btn", use_container_width=True):
-            # Toggle dropdown visibility
             if 'show_categories' not in st.session_state:
                 st.session_state.show_categories = False
             st.session_state.show_categories = not st.session_state.show_categories
@@ -277,6 +373,7 @@ def app():
                 st.session_state.regenerate = True
                 st.session_state.show_categories = False
                 st.rerun()
+            
             if st.button("Premium", key="premium_btn", use_container_width=True):
                 st.success("✅ Premium кнопка работает!")
                 st.session_state.show_categories = False
@@ -381,12 +478,15 @@ def generate_meal_plan():
     left_column = [fmt(r) for _, r in left_df.iterrows()]
     right_column = [fmt(r) for _, r in right_df.iterrows()]
 
-
+    # Calculate total price
+    total_price = df['price'].sum()
 
     return {
         "left_column": left_column,
-        "right_column": right_column
+        "right_column": right_column,
+        "total_price": round(total_price, 2)
     }
+
 
 def generate_healthy_meal_plan_ui():
     df = healthy_generate_meal_plan()
@@ -405,7 +505,11 @@ def generate_healthy_meal_plan_ui():
         else:
             return f"{product} — ${price}"
 
+    # Calculate total price
+    total_price = df['price'].sum()
+
     return {
         "left_column": [fmt(r) for _, r in left_df.iterrows()],
-        "right_column": [fmt(r) for _, r in right_df.iterrows()]
+        "right_column": [fmt(r) for _, r in right_df.iterrows()],
+        "total_price": round(total_price, 2)
     }
