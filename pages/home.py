@@ -15,7 +15,7 @@ def app():
     # Replace URLs with your images or leave empty for emojis
     FOOD_IMAGES = [
         {
-            'emoji': '🍗',
+            'emoji': '🍗 ',
             'url': '',
             'gradient': 'linear-gradient(135deg, #FFC0CB 0%, #FFB6C1 100%)'
         },
@@ -36,7 +36,8 @@ def app():
     st.markdown("""
     <style>
     /* ==== CUSTOM BUTTON STYLE ==== */
-    .stButton > button {
+    .stButton > button,
+    .custom-categories-btn {
         width: 100%;
         height: 56px;
         border-radius: 12px;
@@ -48,17 +49,20 @@ def app():
         color: #111 !important;
         box-shadow: 4px 4px 0px #111;
         transition: all 0.2s ease-in-out;
+        cursor: pointer;
     }
     
     /* Hover */
-    .stButton > button:hover {
+    .stButton > button:hover,
+    .custom-categories-btn:hover {
         transform: translate(2px, 2px);
         box-shadow: 2px 2px 0px #111;
         background-color: #ffd1cb !important;
     }
     
     /* Click */
-    .stButton > button:active {
+    .stButton > button:active,
+    .custom-categories-btn:active {
         transform: translate(4px, 4px);
         box-shadow: 0px 0px 0px #111;
         background-color: #ffb6ad !important;
@@ -130,25 +134,42 @@ def app():
         text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
     }
 
+    /* Categories dropdown - HOVER VERSION */
+    .categories-dropdown-wrapper {
+        position: relative;
+        width: 100%;
+    }
 
-    
-
-    /* Categories dropdown */
     .categories-dropdown {
         display: none;
         position: absolute;
         left: 0;
-        top: 70px;
+        top: 100%;
         background: #5A1E28;
-        min-width: 200px;
+        width: 100%;
         box-shadow: 0 8px 16px rgba(0,0,0,0.3);
-        border-radius: 15px;
+        border-radius: 0 0 12px 12px;
         z-index: 1000;
-        padding: 10px 0;
+        padding: 0;
+        margin-top: -3px;
+        border: 3px solid #111;
+        border-top: none;
+        animation: fadeIn 0.2s ease-in;
     }
 
-    .categories-dropdown.show {
+    .categories-dropdown-wrapper:hover .categories-dropdown {
         display: block;
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(-5px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
     }
 
     .category-option {
@@ -157,6 +178,13 @@ def app():
         cursor: pointer;
         font-size: 18px;
         text-shadow: 1px 1px 2px rgba(0,0,0,0.4);
+        transition: background-color 0.2s ease;
+        border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .category-option:last-child {
+        border-bottom: none;
+        border-radius: 0 0 9px 9px;
     }
 
     .category-option:hover {
@@ -223,21 +251,31 @@ def app():
         st.text(" ")
         st.text(" ")
         st.text(" ")
-        # Categories button with dropdown
-        if 'show_categories' not in st.session_state:
-            st.session_state.show_categories = False
-        if st.button("📂 Categories", key="categories_btn", use_container_width=True):
+        
+        # Categories button with actual Streamlit buttons
+        if st.button("📂 Categories", key="categories_main_btn", use_container_width=True):
+            # Toggle dropdown visibility
+            if 'show_categories' not in st.session_state:
+                st.session_state.show_categories = False
             st.session_state.show_categories = not st.session_state.show_categories
-
-        # Show dropdown if active
-        if st.session_state.show_categories:
-            st.markdown("""
-            <div class="categories-dropdown show" id="categories-menu">
-                <div class="category-option" onclick="alert('Budget selected')">Budget</div>
-                <div class="category-option" onclick="alert('Middle Income selected')">Middle Income</div>
-                <div class="category-option" onclick="alert('Premium selected')">Premium</div>
-            </div>
-            """, unsafe_allow_html=True)
+        
+        # Show category buttons if dropdown is open
+        if st.session_state.get('show_categories', False):
+            st.markdown("<div style='margin-top: 10px;'>", unsafe_allow_html=True)
+            
+            if st.button("Budget", key="budget_btn", use_container_width=True):
+                st.success("✅ Budget кнопка работает!")
+                st.session_state.show_categories = False
+            
+            if st.button("Middle Income", key="middle_btn", use_container_width=True):
+                st.success("✅ Middle Income кнопка работает!")
+                st.session_state.show_categories = False
+            
+            if st.button("Premium", key="premium_btn", use_container_width=True):
+                st.success("✅ Premium кнопка работает!")
+                st.session_state.show_categories = False
+            
+            st.markdown("</div>", unsafe_allow_html=True)
 
         st.markdown("</div>", unsafe_allow_html=True)
 

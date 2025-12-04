@@ -34,5 +34,5 @@ Thumbs.db
 # Logs
 *.log
 
-datasets/walmart.csv
 datasets/questionable.csv
+datasets/walmart.csv
