@@ -114,9 +114,9 @@ def app():
     st.markdown("---")
     
     # FAQ 1
-    with st.expander("🍽️ What is Meal Plan Generator?", expanded=True):
+    with st.expander("🍽️ What is Meal Plans For You?", expanded=True):
         st.markdown("""
-        **Meal Plan Generator** is a web application designed to help you plan your daily meals 
+        **Meal Plans For You** is a web application designed to help you plan your daily meals 
         according to your budget and dietary preferences. Our tool uses datasets of grocery items 
         with different price ranges to create balanced and affordable meal plans.
         """)
@@ -160,13 +160,6 @@ def app():
         *(Note: This feature is currently in development and will be fully functional in the next update)*
         """)
     
-    # FAQ 6
-    with st.expander("📱 Is the app mobile-friendly?"):
-        st.markdown("""
-        Yes! Meal Plan Generator is built with Streamlit and is fully responsive. 
-        You can access it from your smartphone, tablet, or desktop computer. 
-        The interface adapts to your screen size for the best experience.
-        """)
     
     # FAQ 7
     with st.expander("📈 What information is available in Statistics?"):
@@ -208,9 +201,9 @@ def app():
     with st.expander("👥 Who developed this app?"):
         st.markdown("""
         Meal Plan Generator was developed by a dedicated team of three professionals:
-        - **Roman Gribanov** - Project Leader
-        - **John Raymond** - Frontend Developer & UI/UX Designer
-        - **Ruslan Babayev** - Data Scientist & ML Engineer
+        - **Roman Gribanov** - Project Leader & ML Engineer & Backend Development
+        - **John Raymond** - Frontend Developer & UI/UX Designer & Poster creator
+        - **Ruslan Babayev** - Data Scientist & Frontend Developer
         
         Visit the **About** page to learn more about the team!
         """)
@@ -251,10 +244,6 @@ def app():
     through the contact information on the **About** page. We're here to help!
     """)
     
-    col1, col2, col3 = st.columns(3)
+    col1= st.columns(1)
     with col1:
-        st.info("📧 Email Support")
-    with col2:
-        st.info("💬 Community Forum")
-    with col3:
-        st.info("📖 Documentation")
+        st.info("📧 Email Support: babayev21@arizona.edu")

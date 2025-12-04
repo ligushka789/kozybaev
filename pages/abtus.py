@@ -37,11 +37,13 @@ def app():
         - Team leadership
         - Work coordination
         - Project architecture
+        - Backend development
+        - ML models
         
         **Contacts:**
         - 📧 Email: roman@example.com
-        - 💼 LinkedIn: [link]
-        - 🐙 GitHub: [link]
+        - 💼 LinkedIn: https://www.linkedin.com/in/roman-gribanov-data/
+        - 🐙 GitHub: https://github.com/ligushka789
         """)
     
     # ============================================
@@ -58,11 +60,12 @@ def app():
         - Frontend development
         - UI/UX design
         - Testing
+        - Poster creator
         
         **Contacts:**
         - 📧 Email: john@example.com
-        - 💼 LinkedIn: [link]
-        - 🐙 GitHub: [link]
+        - 💼 LinkedIn: https://www.linkedin.com/in/pavelyeremenko/
+        - 🐙 GitHub: https://github.com/JohnRaymondTwin
         """)
     
     # ============================================
@@ -77,13 +80,14 @@ def app():
         st.markdown("""
         **Role in project:**
         - Data Science
-        - ML models
+        - Visualizations
         - Data analysis
+        - Frontend development
         
         **Contacts:**
-        - 📧 Email: ruslan@example.com
-        - 💼 LinkedIn: [link]
-        - 🐙 GitHub: [link]
+        - 📧 Email: babayev21@arizona.edu
+        - 💼 LinkedIn: https://www.linkedin.com/in/ruslanbabayevkz/
+        - 🐙 GitHub: https://github.com/immortalburning
         """)
     
     st.markdown("---")
@@ -91,7 +95,7 @@ def app():
     # Project information
     st.markdown("## 📋 About the Project")
     st.write("""
-    **Meal Plan Generator (Mgzi)** is an MVP project developed as part of a capstone project.
+    **Meal Plans For You** is an MVP project developed as part of a capstone project.
     
     The project's goal is to help people plan their meals according to their budget and preferences.
     
@@ -107,9 +111,9 @@ def app():
     - Streamlit
     - Pandas
     - Plotly
-    - R Language
+    - Joblib
     - Data Analysis & ML
     """)
     
     st.markdown("---")
-    st.markdown("*© 2024 Meal Plan Generator Team. All rights reserved.*")
+    st.markdown("*© Meal Plans For You Team. All rights reserved.*")
