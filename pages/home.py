@@ -3,9 +3,12 @@ import pandas as pd
 import random
 from pages.header import render_header
 from generate.generator import generate_meal_plan as ml_generate_meal_plan
+from generate.generator_healthy import generate_healthy_plan as healthy_generate_meal_plan
 
 
 def app():
+    if "plan_type" not in st.session_state:
+        st.session_state.plan_type = None
     # Render common header
     render_header(current_page="home")
 
@@ -264,13 +267,16 @@ def app():
             st.markdown("<div style='margin-top: 10px;'>", unsafe_allow_html=True)
             
             if st.button("Budget", key="budget_btn", use_container_width=True):
-                st.success("✅ Budget кнопка работает!")
+                st.session_state.plan_type = "budget"
+                st.session_state.regenerate = True
                 st.session_state.show_categories = False
+                st.rerun()
             
-            if st.button("Middle Income", key="middle_btn", use_container_width=True):
-                st.success("✅ Middle Income кнопка работает!")
+            if st.button("Healthy food", key="middle_btn", use_container_width=True):
+                st.session_state.plan_type = "healthy"
+                st.session_state.regenerate = True
                 st.session_state.show_categories = False
-            
+                st.rerun()
             if st.button("Premium", key="premium_btn", use_container_width=True):
                 st.success("✅ Premium кнопка работает!")
                 st.session_state.show_categories = False
@@ -282,11 +288,29 @@ def app():
     # Center column - meal plan card
     with center_col:
         # Generate meal plan
-        if 'current_meal' not in st.session_state or st.session_state.get('regenerate', False):
-            st.session_state.current_meal = generate_meal_plan()
+        if st.session_state.get("plan_type") and ('current_meal' not in st.session_state or st.session_state.get('regenerate', False)
+             ):
+            if st.session_state.plan_type == "budget":
+                st.session_state.current_meal = generate_meal_plan()
+            elif st.session_state.plan_type == "healthy":
+                st.session_state.current_meal = generate_healthy_meal_plan_ui()
+            else:
+                st.session_state.current_meal = generate_meal_plan()
             st.session_state.regenerate = False
 
-        meal = st.session_state.current_meal
+        if st.session_state.plan_type is None:
+            st.markdown("""
+            <div style="display:flex;justify-content:center;align-items:center;height:300px;">
+                <iframe 
+                    src="https://lottie.host/embed/fbf7fb23-9cc5-4e07-97b0-f97afa787dc4/OLKsHTvBR7.lottie"
+                    style="width:300px;height:300px;border:none;">
+                </iframe>
+            </div>
+            <h3 style="text-align:center;color:#F4D03F;">Choose a category 👈</h3>
+            """, unsafe_allow_html=True)
+            return
+        else:
+            meal = st.session_state.current_meal
 
         st.markdown(f"""
         <div class="meal-card">
@@ -357,11 +381,31 @@ def generate_meal_plan():
     left_column = [fmt(r) for _, r in left_df.iterrows()]
     right_column = [fmt(r) for _, r in right_df.iterrows()]
 
-    # Calculate total price
-    total_price = df['price'].sum()
-    
+
+
     return {
         "left_column": left_column,
-        "right_column": right_column,
-        "total_price": round(total_price, 2)
+        "right_column": right_column
+    }
+
+def generate_healthy_meal_plan_ui():
+    df = healthy_generate_meal_plan()
+
+    half = len(df) // 2
+    left_df = df.iloc[:half]
+    right_df = df.iloc[half:]
+
+    def fmt(row):
+        product = row['product_name']
+        price = round(row['price'], 2)
+        url = row.get('product_url', '')
+
+        if url and url.strip():
+            return f"{product} — <a href='{url}' target='_blank' style='color: #7CFC00; text-decoration: underline;'>${price}</a>"
+        else:
+            return f"{product} — ${price}"
+
+    return {
+        "left_column": [fmt(r) for _, r in left_df.iterrows()],
+        "right_column": [fmt(r) for _, r in right_df.iterrows()]
     }
