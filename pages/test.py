@@ -131,6 +131,14 @@ def app():
     </style>
     """, unsafe_allow_html=True)
 
+    # Home button
+    home_col = st.columns([1, 1, 1])
+    with home_col[1]:
+        if st.button("🏠 Home"):
+            st.query_params["page"] = "home"
+            st.rerun()
+
+
     # Display logo (2x bigger, perfectly centered)
     if os.path.exists(logo_path):
         col1, col2, col3 = st.columns([1, 1, 1])

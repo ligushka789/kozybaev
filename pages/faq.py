@@ -66,6 +66,18 @@ def app():
         text-decoration: none !important;
     }
 
+    /* Hide keyboard_arrow_right icon */
+    [data-testid="stIconMaterial"] {
+        display: none !important;
+    }
+    
+    /* Alternative: hide the icon span */
+    details summary span[data-testid="stIconMaterial"] {
+        visibility: hidden !important;
+        width: 0 !important;
+        height: 0 !important;
+    }
+
     /* ================================
        EXPANDER LOOK
     ================================ */

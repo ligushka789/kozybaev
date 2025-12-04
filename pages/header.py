@@ -27,6 +27,8 @@ def render_header(current_page="home"):
         display: grid;
         grid-template-columns: 1fr auto 1fr;
         align-items: center;
+        max-width: 10000px;  /* Или любое другое значение */
+        margin: 0 auto;     /* Центрируем */
     }
 
     .nav-left,
@@ -85,7 +87,7 @@ def render_header(current_page="home"):
         text-decoration: underline !important;
     }
 
-    /* DROPDOWN MENU */
+    /* DROPDOWN MENU - УЛУЧШЕННАЯ ВЕРСИЯ */
     .dropdown {
         position: relative;
         display: inline-block;
@@ -99,6 +101,11 @@ def render_header(current_page="home"):
         cursor: pointer;
         font-weight: 600;
         text-shadow: 1px 1px 3px rgba(0,0,0,.4);
+        padding: 8px 12px;
+    }
+
+    .dropbtn:hover {
+        text-decoration: underline;
     }
 
     .dropdown-content {
@@ -109,8 +116,9 @@ def render_header(current_page="home"):
         border-radius: 10px;
         padding: 10px 0;
         box-shadow: 0 8px 16px rgba(0,0,0,.3);
-        top: 45px;
+        top: 100%;
         right: 0;
+        margin-top: 2px;
         z-index: 10;
     }
 
@@ -121,14 +129,29 @@ def render_header(current_page="home"):
         cursor: pointer;
         font-size: 18px;
         text-decoration: none;
+        text-shadow: 1px 1px 2px rgba(0,0,0,0.4);
+        transition: background-color 0.2s ease;
     }
 
     .dropdown-content a:hover {
         background-color: #8B4C4C;
     }
 
+    /* Показываем меню при наведении на dropdown контейнер */
     .dropdown:hover .dropdown-content {
         display: block;
+        animation: fadeIn 0.6s ease-in;
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(-5px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
     }
 
     hr {
@@ -160,17 +183,18 @@ def render_header(current_page="home"):
             st.image(logo, use_container_width=True)
         st.markdown('</div>', unsafe_allow_html=True)
 
-    # RIGHT - DROPDOWN with working links
+    # RIGHT - DROPDOWN with working hover
     with col_right:
-        st.markdown(f"""
-        <div class="dropdown" style="display: flex; justify-content: flex-end;">
-            <button class="dropbtn">More ▾</button>
-            <div class="dropdown-content">
-                <a href="?page=stats">Statistics</a>
-                <a href="?page=datasets">Datasets</a>
-                <a href="?page=faq">FAQ</a>
-                <a href="?page=about">About</a>
-                <a href="?page=account">My Account</a>
+        st.markdown("""
+        <div style="display: flex; justify-content: flex-end;">
+            <div class="dropdown">
+                <button class="dropbtn">More ▾</button>
+                <div class="dropdown-content">
+                    <a href="?page=datasets">Datasets</a>
+                    <a href="?page=faq">FAQ</a>
+                    <a href="?page=about">About</a>
+                    <a href="?page=account">My Account</a>
+                </div>
             </div>
         </div>
         """, unsafe_allow_html=True)
