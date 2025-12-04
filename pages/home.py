@@ -338,7 +338,16 @@ def generate_meal_plan():
     right_df = df.iloc[half:]
 
     def fmt(row):
-        return f"{row['product_name']} — ${round(row['price'], 2)}"
+        product = row['product_name']
+        price = round(row['price'], 2)
+        url = row.get('product_url', '')
+        
+        if url and url.strip():
+            # Create hyperlink with price as clickable text
+            return f"{product} — <a href='{url}' target='_blank' style='color: #F4D03F; text-decoration: underline;'>${price}</a>"
+        else:
+            # No URL available, just show price
+            return f"{product} — ${price}"
 
     left_column = [fmt(r) for _, r in left_df.iterrows()]
     right_column = [fmt(r) for _, r in right_df.iterrows()]
