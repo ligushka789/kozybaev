@@ -38,6 +38,7 @@ SNACK_BAN = [
     "cake","chip","crisps","puff","fried","snack"
 ]
 
+
 # ===========================
 # NORMALIZE
 # ===========================
@@ -46,6 +47,7 @@ def normalize(text):
     text = str(text).lower()
     text = re.sub(r"[^a-z0-9\s]", " ", text)
     return re.sub(r"\s+", " ", text).strip()
+
 
 # ===========================
 # LOAD DATA
@@ -58,6 +60,7 @@ def load_dataset():
     df = df[df["healthy_flag"].notna()]
     return df
 
+
 # ===========================
 # HEALTH SCORE
 # ===========================
@@ -68,32 +71,45 @@ def compute_health_score(row):
     block = row["ml_block"]
     score = 0
 
-    # unhealthy => DROP
+    # ❌ DROP UNHEALTHY
     if row["healthy_flag"] == "unhealthy":
         return -999
 
-    # healthy boost
+    # ✅ BASE HEALTH
     if row["healthy_flag"] == "healthy":
         score += 3
 
-    # trusted bonus
+    # ✅ TRUSTED BRAND
     if row.get("trusted_brand", False):
         score += 2
 
-    # allergen penalty
+    # ❌ ALLERGEN PENALTY
     if row.get("allergen_any", False):
         score -= 2
 
-    # spam/musor filter
+    # ❌ GREAT VALUE PENALTY (STRONG)
+    if "great value" in name:
+        score -= 8
+
+    # ✅ PREMIUM / ORGANIC BOOST
+    if any(x in name for x in [
+        "organic", "wild caught", "grass fed",
+        "free range", "no antibiotics",
+        "nature valley", "quaker", "oikos", "perdue"
+    ]):
+        score += 3
+
+    # ❌ SPAM
     for kw in BANNED_KEYWORDS:
         if kw in name:
             return -999
 
-    # mistakes protections
-    if block == "drink" and "tuna" in name:
+    # ❌ DRINK MISTAKE PROTECTION
+    if block == "drink" and any(x in name for x in ["tuna","meat","burger","chicken","egg"]):
         return -999
 
     return score
+
 
 # ===========================
 # SNACK FILTER
@@ -110,6 +126,7 @@ def snack_filter(df):
 
     return df[df["product_name"].apply(ok)]
 
+
 # ===========================
 # VALIDATE BLOCK
 # ===========================
@@ -117,33 +134,32 @@ def snack_filter(df):
 def validate_block(block, name):
     n = name.lower()
 
-    # --- PROTEIN (ЖЁСТКО) ---
+    # --- PROTEIN ---
     if block == "protein":
 
-        # ❌ Фрукты / овощи / бобы / зерно / сладкое — убрать из protein
+        # ❌ NO PLANTS / GRAINS / SUGAR
         if any(x in n for x in [
             "strawberry","blueberry","apple","banana","fruit",
-            "beans","bean","lentil","pea","vegetable","veggie",
-            "corn","carrot","broccoli","rice","oat","grain",
-            "bread","cereal","pasta","burrito","tortilla",
-            "sugar","sweet","chocolate","cookie","bar"
+            "beans","bean","lentil","pea",
+            "corn","rice","oat","bread","cereal","pasta","tortilla",
+            "sugar","cookie","bar","chocolate"
         ]):
             return False
 
-        # ✅ Protein ТОЛЬКО если есть явный признак:
+        # ✅ MUST BE REAL PROTEIN
         if not any(x in n for x in [
-            "chicken","beef","pork","turkey","fish","salmon",
-            "tuna","egg","eggs","yogurt","tofu","protein",
-            "steak","meat","burger","jerky"
+            "chicken","beef","pork","turkey","salmon","fish","tuna",
+            "egg","eggs","yogurt","tofu","steak","meat","jerky","burger"
         ]):
             return False
 
     # --- DRINK ---
     if block == "drink":
-        if any(f in n for f in ["burger","chicken","meat","tuna","egg","beans"]):
+        if any(x in n for x in ["burger","chicken","meat","tuna","egg","beans"]):
             return False
 
     return True
+
 
 # ===========================
 # SELECT BLOCK
@@ -156,20 +172,22 @@ def select_block(df, block, k):
     if block == "snack":
         pool = snack_filter(pool)
 
-    # ✅ Block validation — ДО сортировки и window
-    pool = pool[pool["product_name"].apply(
-        lambda x: validate_block(block, x)
-    )]
+    # ✅ BLOCK VALIDATION FIRST
+    pool = pool[pool["product_name"].apply(lambda x: validate_block(block, x))]
 
-    # fallback если блок пустой
+    # fallback
     if len(pool) == 0:
-        print(f"⚠️ EMPTY BLOCK {block} → fallback to global healthy")
+        print(f"⚠️ EMPTY BLOCK {block} → fallback")
         pool = df.copy()
 
+    # ✅ SORT BY SCORE
     pool = pool.sort_values("health_score", ascending=False)
+
+    # ✅ TAKE BEST POOL
     window = pool.head(75)
 
     return window.sample(min(k, len(window)), random_state=random.randint(0, 99999))
+
 
 # ===========================
 # GENERATOR
@@ -179,7 +197,10 @@ def generate_healthy_plan():
 
     df = load_dataset()
 
-    # base filter
+    # ✅ COMPUTE HEALTH SCORE
+    df["health_score"] = df.apply(compute_health_score, axis=1)
+
+    # ✅ BASE FILTER
     df = df[df["ml_block"] != IGNORE_BLOCK]
     df = df[df["health_score"] > 0]
 
@@ -194,10 +215,21 @@ def generate_healthy_plan():
 
     result = pd.concat(selected).drop_duplicates("product_name")
 
-    # добиваем до 16 если не хватает
+    # ✅ FILL IF LESS THAN 16
     while len(result) < 16:
         extra = df.sample(1)
         result = pd.concat([result, extra]).drop_duplicates("product_name")
+
+    # ✅ LIMIT GREAT VALUE MAX 2
+    gv = result[result["product_name"].str.lower().str.contains("great value")]
+    if len(gv) > 2:
+        drop = gv.sample(len(gv) - 2)
+        result = result.drop(drop.index)
+        refill = df[~df["product_name"].str.lower().str.contains("great value")].sample(len(drop))
+        result = pd.concat([result, refill])
+
+    # ✅ DEBUG
+    print("\n🔥 GREAT VALUE:", len(result[result["product_name"].str.lower().str.contains("great value")]))
 
     return result[[
         "block","category","subcategory",
@@ -206,6 +238,7 @@ def generate_healthy_plan():
         "healthy_flag","allergen_any","trusted_brand",
         "health_score","product_url"
     ]]
+
 
 # ===========================
 # CLI
