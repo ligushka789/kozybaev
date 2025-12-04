@@ -317,11 +317,16 @@ def app():
             <h1 class="meal-title">Daily Meal Plan</h1>
             <div class="ingredients-grid">
                 <div class="ingredient-column">
-                    {"".join([f'<div class="ingredient-item">• {item}</div>' for item in meal['left_column']])}
+                    {"".join([f'<div class="ingredient-item">{item}</div>' for item in meal['left_column']])}
                 </div>
                 <div class="ingredient-column">
-                    {"".join([f'<div class="ingredient-item">• {item}</div>' for item in meal['right_column']])}
+                    {"".join([f'<div class="ingredient-item">{item}</div>' for item in meal['right_column']])}
                 </div>
+            </div>
+            <div style="margin-top: 30px; padding-top: 20px; border-top: 2px solid rgba(255,255,255,0.3); text-align: center;">
+                <span style="color: #F4D03F; font-size: 32px; font-weight: bold; text-shadow: 2px 2px 4px rgba(0,0,0,0.5);">
+                    Total: ${meal['total_price']}
+                </span>
             </div>
         </div>
         """, unsafe_allow_html=True)
