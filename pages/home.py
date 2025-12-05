@@ -4,7 +4,8 @@ import random
 from pages.header import render_header
 from generate.generator import generate_meal_plan as ml_generate_meal_plan
 from generate.generator_healthy import generate_healthy_plan as healthy_generate_meal_plan
-
+from generate.generator_popular import generate_popular_plan
+from generate.generator_premium import generate_premium_plan
 
 def app():
     if "plan_type" not in st.session_state:
@@ -266,7 +267,16 @@ def app():
             )
             
             # Title
-            plan_name = "Budget Meal Plan" if st.session_state.plan_type == "budget" else "Healthy Meal Plan"
+            if st.session_state.plan_type == "budget":
+                plan_name = "Budget Meal Plan"
+            elif st.session_state.plan_type == "healthy":
+                plan_name = "Healthy Meal Plan"
+            elif st.session_state.plan_type == "popular":
+                plan_name = "The most popular of Meal Plan"
+            elif st.session_state.plan_type == "premium":
+                plan_name = "Premium Meal Plan"
+            else:
+                plan_name = "Meal Plan"
             title = Paragraph(f"<b>{plan_name}</b>", title_style)
             elements.append(title)
             elements.append(Spacer(1, 0.2*inch))
@@ -317,6 +327,11 @@ def app():
                 filename = "budget_meal_plan.pdf"
             elif st.session_state.plan_type == "healthy":
                 filename = "healthy_meal_plan.pdf"
+            elif st.session_state.plan_type == "popular":
+                filename = "typical_american_meal_plan.pdf"
+            elif st.session_state.plan_type == "premium":
+                 filename = "premium_plan.pdf"
+            
             else:
                 filename = "meal_plan.pdf"
             
@@ -374,9 +389,16 @@ def app():
                 st.session_state.show_categories = False
                 st.rerun()
             
-            if st.button("Premium", key="premium_btn", use_container_width=True):
-                st.success("✅ Premium кнопка работает!")
+            if st.button("The most popular", key="popular_btn", use_container_width=True):
+                st.session_state.plan_type = "popular"
+                st.session_state.regenerate = True
                 st.session_state.show_categories = False
+                st.rerun()
+            if st.button("Premium", key="premium_btn", use_container_width=True):
+                st.session_state.plan_type = "premium"
+                st.session_state.regenerate = True
+                st.session_state.show_categories = False
+                st.rerun()
             
             st.markdown("</div>", unsafe_allow_html=True)
 
@@ -391,6 +413,10 @@ def app():
                 st.session_state.current_meal = generate_meal_plan()
             elif st.session_state.plan_type == "healthy":
                 st.session_state.current_meal = generate_healthy_meal_plan_ui()
+            elif st.session_state.plan_type == "popular":
+                st.session_state.current_meal = generate_popular_meal_plan_ui()
+            elif st.session_state.plan_type == "premium":
+                st.session_state.current_meal = generate_premium_meal_plan_ui()
             else:
                 st.session_state.current_meal = generate_meal_plan()
             st.session_state.regenerate = False
@@ -512,4 +538,54 @@ def generate_healthy_meal_plan_ui():
         "left_column": [fmt(r) for _, r in left_df.iterrows()],
         "right_column": [fmt(r) for _, r in right_df.iterrows()],
         "total_price": round(total_price, 2)
+    }
+
+def generate_popular_meal_plan_ui():
+    df = generate_popular_plan()
+
+    half = len(df) // 2
+    left_df = df.iloc[:half]
+    right_df = df.iloc[half:]
+
+    def fmt(row):
+        product = row['product_name']
+        price = round(row['price'], 2)
+        url = row.get('product_url', '')
+
+        if url and url.strip():
+            return f"{product} — <a href='{url}' target='_blank' style='color: #F4D03F; text-decoration: underline;'>${price}</a>"
+        else:
+            return f"{product} — ${price}"
+
+    total_price = df['price'].sum()
+
+    return {
+        "left_column": [fmt(r) for _, r in left_df.iterrows()],
+        "right_column": [fmt(r) for _, r in right_df.iterrows()],
+        "total_price": round(total_price, 2)
+    }
+
+
+
+def generate_premium_meal_plan_ui():
+    df = generate_premium_plan()
+
+    half = len(df) // 2
+    left_df = df.iloc[:half]
+    right_df = df.iloc[half:]
+
+    def fmt(row):
+        product = row['product_name']
+        price = round(row['price'], 2)
+        url = row.get('product_url', '')
+
+        if url and str(url).strip():
+            return f"{product} — <a href='{url}' target='_blank' style='color: #00FFFF; text-decoration: underline;'>${price}</a>"
+        else:
+            return f"{product} — ${price}"
+
+    return {
+        "left_column": [fmt(r) for _, r in left_df.iterrows()],
+        "right_column": [fmt(r) for _, r in right_df.iterrows()],
+        "total_price": round(df['price'].sum(), 2)
     }
